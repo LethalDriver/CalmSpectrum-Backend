@@ -12,3 +12,10 @@ func MapUserEntityToDto(user *structs.UserEntity) *structs.UserDto {
 		Email:    user.Email,
 	}
 }
+
+func MapUserEntityToPublicDto(user *structs.UserEntity) *structs.PublicUserDto {
+	return &structs.PublicUserDto{
+		Id:       user.Id,
+		Username: user.Username,
+	}
+}

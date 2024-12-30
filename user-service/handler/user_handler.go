@@ -116,6 +116,23 @@ func (h *UserHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *UserHandler) HandleSearch(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := r.URL.Query().Get("query")
+	users, err := h.s.SearchForUsers(ctx, query)
+	if err != nil {
+		log.Printf("Failed searching users: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = writeJsonResponse(w, users)
+	if err != nil {
+		log.Printf("Failed writing search response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
 // parseRequest reads the request body and unmarshals it into the given struct.
 func parseRequest(r *http.Request, reqStruct any) error {
 	bodyBytes, err := io.ReadAll(r.Body)
