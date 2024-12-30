@@ -162,15 +162,15 @@ func (s *UserService) LoginUser(ctx context.Context, r LoginRequest) (*structs.U
 	return userDto, token, nil
 }
 
-func (s *UserService) SearchForUsers(ctx context.Context, query string) ([]*structs.UserDto, error) {
+func (s *UserService) SearchForUsers(ctx context.Context, query string) ([]*structs.PublicUserDto, error) {
 	users, err := s.repo.SearchByUsername(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed searching for users: %w", err)
 	}
 
-	var userDtos []*structs.UserDto
+	var userDtos []*structs.PublicUserDto
 	for _, user := range users {
-		userDto := MapUserEntityToDto(user)
+		userDto := MapUserEntityToPublicDto(user)
 		userDtos = append(userDtos, userDto)
 	}
 
