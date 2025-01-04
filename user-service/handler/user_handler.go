@@ -116,6 +116,23 @@ func (h *UserHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *UserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userId := r.PathValue("userId")
+	user, err := h.s.GetUserPublicDto(ctx, userId)
+	if err != nil {
+		log.Printf("Failed getting user: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = writeJsonResponse(w, user)
+	if err != nil {
+		log.Printf("Failed writing user response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *UserHandler) HandleSearch(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query().Get("query")

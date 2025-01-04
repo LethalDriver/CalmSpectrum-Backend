@@ -71,6 +71,15 @@ func (s *UserService) GetUserDto(ctx context.Context, userId string) (*structs.U
 	return userDto, nil
 }
 
+func (s *UserService) GetUserPublicDto(ctx context.Context, userId string) (*structs.PublicUserDto, error) {
+	user, err := s.repo.GetById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	userDto := MapUserEntityToPublicDto(user)
+	return userDto, nil
+}
+
 // GetUser retrieves a user entity by their username.
 func (s *UserService) GetUser(ctx context.Context, username string) (*structs.UserEntity, error) {
 	user, err := s.repo.GetByUsername(ctx, username)
