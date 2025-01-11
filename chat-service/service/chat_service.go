@@ -69,7 +69,18 @@ func (s *ChatService) GetMessagesSummary(ctx context.Context, roomId, userId str
 		return nil, ErrInsufficientPermissions
 	}
 
-	summary, err := s.ai.GetMessagesSummary(ctx, room.Messages)
+	unreadMessages, err := s.roomRepo.GetUnseenMessages(ctx, roomId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var messageDtos []structs.MessageDto
+
+	for _, message := range unreadMessages {
+		messageDtos = append(messageDtos, s.mapMessageToMessageDto(message))
+	}
+
+	summary, err := s.ai.GetMessagesSummary(ctx, messageDtos)
 	if err != nil {
 		return nil, err
 	}
@@ -101,4 +112,11 @@ func (s *ChatService) processAndSaveMessage(ctx context.Context, roomId string, 
 	message.ChatRoomId = roomId
 	message.SeenBy = []string{message.SentBy}
 	return *message, s.roomRepo.AddMessageToRoom(ctx, roomId, message)
+}
+
+func (s *ChatService) mapMessageToMessageDto(message structs.Message) structs.MessageDto {
+	return structs.MessageDto{
+		Content: message.Content,
+		SentBy:  message.SentBy,
+	}
 }

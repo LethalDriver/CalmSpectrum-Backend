@@ -1,8 +1,11 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -29,8 +32,43 @@ func NewAiClient() (*AiAssistantClient, error) {
 	}, nil
 }
 
-func (c *AiAssistantClient) GetMessagesSummary(ctx context.Context, messages []structs.Message) (*structs.MessagesSummary, error) {
-	return &structs.MessagesSummary{
-		Summary: "This is a summary of the messages",
-	}, nil
+// GetMessagesSummary sends a POST request to the AI assistant to get a summary of the messages.
+func (c *AiAssistantClient) GetMessagesSummary(ctx context.Context, messages []structs.MessageDto) (*structs.MessagesSummary, error) {
+	payload := map[string][]structs.MessageDto{
+		"messages": messages,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal messages: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/summarize_chat", c.BaseURL), bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("AI assistant returned status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var summary structs.MessagesSummary
+	if err := json.Unmarshal(bodyBytes, &summary); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return &summary, nil
 }

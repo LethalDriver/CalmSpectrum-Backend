@@ -31,3 +31,8 @@ type WsMessage struct {
 	Type MessageType     `json:"type"`
 	Data json.RawMessage `json:"data"`
 }
+
+type MessageDto struct {
+	SentBy string `json:"sentBy"`
+	Content string `json:"content"`
+}
