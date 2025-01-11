@@ -21,6 +21,7 @@ type ChatRoomRepository interface {
 	ChangeUserRole(ctx context.Context, roomId string, userId string, role structs.Role) error
 	GetUnseenMessages(ctx context.Context, roomId, userId string) ([]structs.Message, error)
 	GetUsersRooms(ctx context.Context, userId string) ([]structs.ChatRoomEntity, error)
+	GetMessageById(ctx context.Context, id string) (*structs.Message, error)
 }
 
 // ErrInsufficientPermissions is an error indicating that the user does not have sufficient permissions.

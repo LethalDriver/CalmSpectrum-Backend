@@ -203,3 +203,13 @@ func (repo *MongoChatRoomRepository) GetUnseenMessages(ctx context.Context, room
 
 	return messages, nil
 }
+
+func (repo *MongoChatRoomRepository) GetMessageById(ctx context.Context, id string) (*structs.Message, error) {
+	var msg structs.Message
+	filter := bson.M{"id": id}
+	err := repo.collection.FindOne(ctx, filter).Decode(&msg)
+	if err != nil {
+		return nil, err
+	}
+	return &msg, nil
+}

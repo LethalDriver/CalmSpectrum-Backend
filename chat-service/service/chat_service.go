@@ -60,7 +60,7 @@ func (s *ChatService) ValidateConnection(ctx context.Context, roomId, userId str
 	return nil
 }
 
-func (s *ChatService) GetMessagesSummary(ctx context.Context, roomId, userId string) (*structs.MessagesSummary, error) {
+func (s *ChatService) GetMessagesSummary(ctx context.Context, roomId, userId string, messageIds []string) (*structs.MessagesSummary, error) {
 	room, err := s.roomRepo.GetRoom(ctx, roomId)
 	if err != nil {
 		return nil, err
@@ -69,14 +69,18 @@ func (s *ChatService) GetMessagesSummary(ctx context.Context, roomId, userId str
 		return nil, ErrInsufficientPermissions
 	}
 
-	unreadMessages, err := s.roomRepo.GetUnseenMessages(ctx, roomId, userId)
-	if err != nil {
-		return nil, err
+	var messages []structs.Message
+	for _, msgId := range messageIds {
+		msg, err := s.roomRepo.GetMessageById(ctx, msgId)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, *msg)
 	}
 
 	var messageDtos []structs.MessageDto
 
-	for _, message := range unreadMessages {
+	for _, message := range messages {
 		messageDtos = append(messageDtos, s.mapMessageToMessageDto(message))
 	}
 
