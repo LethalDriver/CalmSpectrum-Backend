@@ -20,7 +20,8 @@ func MapRoomEntityToDto(room *structs.ChatRoomEntity) *structs.RoomDto {
 // MapUserPermissionsToDto maps a UserPermissions to a UserDto.
 func MapUserPermissionsToDto(user *structs.UserPermissions) *structs.UserDto {
 	return &structs.UserDto{
-		Id:   user.UserId,
-		Role: user.Role.String(),
+		Id:       user.UserId,
+		Role:     user.Role.String(),
+		Username: user.Username,
 	}
 }

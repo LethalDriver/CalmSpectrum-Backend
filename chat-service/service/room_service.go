@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"example.com/chat_app/chat_service/repository"
 	"example.com/chat_app/chat_service/structs"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,12 +31,14 @@ var ErrInsufficientPermissions = errors.New("insufficient permissions")
 
 // RoomService provides methods to manage chat rooms and handle user permissions.
 type RoomService struct {
-	repo ChatRoomRepository
+	repo     ChatRoomRepository
+	userRepo *repository.UserRepository
 }
 
 // NewRoomService creates a new instance of RoomService.
-func NewRoomService(repo ChatRoomRepository) *RoomService {
-	return &RoomService{repo: repo}
+func NewRoomService(repo ChatRoomRepository, users *repository.UserRepository) *RoomService {
+	return &RoomService{repo: repo,
+		userRepo: users}
 }
 
 // GetRoomDto retrieves a chat room DTO if the user belongs to the room.
@@ -76,30 +80,41 @@ func (s *RoomService) AddUserToRoom(ctx context.Context, roomId string, newUserI
 	if err := s.validateAdminPrivileges(ctx, roomId, addingUserId); err != nil {
 		return err
 	}
+	username, err := s.userRepo.GetUsernameById(ctx, newUserId)
+	if err != nil {
+		return err
+	}
 	userPermissions := structs.UserPermissions{
-		UserId: newUserId,
-		Role:   structs.Member,
+		UserId:   newUserId,
+		Username: username,
+		Role:     structs.Member,
 	}
 	return s.repo.InsertUserIntoRoom(ctx, roomId, userPermissions)
 }
 
 // AddUsersToRoom adds multiple users to a chat room if the requesting user has admin privileges.
-func (s *RoomService) AddUsersToRoom(ctx context.Context, roomId string, newUsers []string, addingUserId string) ([]error, error) {
-	var dbInsertErrors []error
+func (s *RoomService) AddUsersToRoom(ctx context.Context, roomId string, newUsers []string, addingUserId string) error {
 	if err := s.validateAdminPrivileges(ctx, roomId, addingUserId); err != nil {
-		return nil, ErrInsufficientPermissions
+		return ErrInsufficientPermissions
 	}
+	fmt.Printf("Adding users to room %s: %v\n", roomId, newUsers)
 	for _, userId := range newUsers {
-		permission := structs.UserPermissions{
-			UserId: userId,
-			Role:   structs.Member,
-		}
-		err := s.repo.InsertUserIntoRoom(ctx, roomId, permission)
+		username, err := s.userRepo.GetUsernameById(ctx, userId)
 		if err != nil {
-			dbInsertErrors = append(dbInsertErrors, err)
+			return err
+		}
+		permission := structs.UserPermissions{
+			UserId:   userId,
+			Role:     structs.Member,
+			Username: username,
+		}
+		fmt.Printf("Adding user %v", permission)
+		err = s.repo.InsertUserIntoRoom(ctx, roomId, permission)
+		if err != nil {
+			return err
 		}
 	}
-	return dbInsertErrors, nil
+	return nil
 }
 
 // RemoveUserFromRoom removes a user from a chat room if the requesting user has admin privileges.
@@ -133,9 +148,14 @@ func (s *RoomService) DemoteUser(ctx context.Context, roomId, demotingUserId, de
 
 // AddAdminToRoom adds an admin to a chat room.
 func (s *RoomService) AddAdminToRoom(ctx context.Context, roomId string, userId string) error {
+	username, err := s.userRepo.GetUsernameById(ctx, userId)
+	if err != nil {
+		return err
+	}
 	userPermission := structs.UserPermissions{
-		UserId: userId,
-		Role:   structs.Admin,
+		UserId:   userId,
+		Username: username,
+		Role:     structs.Admin,
 	}
 	return s.repo.InsertUserIntoRoom(ctx, roomId, userPermission)
 }

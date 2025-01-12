@@ -39,6 +39,7 @@ func main() {
 
 	chatRoomRepo := repository.NewMongoChatRoomRepository(mongoClient, "chatdb", "chatrooms")
 	mediaRepo := repository.NewMongoFileRepository(mongoClient, "chatdb", "mediafiles")
+	userRepo := repository.NewUserRepository(mongoClient, "chatdb", "users")
 
 	mediaServiceClient, err := client.NewMediaClient()
 	if err != nil {
@@ -52,7 +53,7 @@ func main() {
 
 	roomManager := service.NewRoomManager()
 	chatService := service.NewChatService(chatRoomRepo, roomManager, aiClient)
-	roomService := service.NewRoomService(chatRoomRepo)
+	roomService := service.NewRoomService(chatRoomRepo, userRepo)
 	mediaService := service.NewMediaService(mediaRepo, mediaServiceClient)
 
 	wsHandler := handler.NewWebsocketHandler(chatService)

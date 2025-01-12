@@ -13,8 +13,9 @@ type RoomCreateDto struct {
 }
 
 type UserDto struct {
-	Id   string `json:"id"`
-	Role string `json:"role"`
+	Id       string `json:"id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 type SeenMessage struct {
@@ -33,6 +34,6 @@ type WsMessage struct {
 }
 
 type MessageDto struct {
-	SentBy string `json:"sentBy"`
+	SentBy  string `json:"sentBy"`
 	Content string `json:"content"`
 }

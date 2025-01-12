@@ -23,8 +23,9 @@ const (
 )
 
 type UserPermissions struct {
-	UserId string `bson:"userId" json:"userId"`
-	Role   Role   `bson:"role" json:"permission"`
+	UserId   string `bson:"userId" json:"userId"`
+	Role     Role   `bson:"role" json:"permission"`
+	Username string `bson:"username" json:"username"`
 }
 
 type ChatRoomEntity struct {

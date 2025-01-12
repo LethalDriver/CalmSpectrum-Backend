@@ -105,17 +105,16 @@ func (rh *RoomHandler) AddUsersToRoom(w http.ResponseWriter, r *http.Request) {
 	addingUserId := r.Header.Get("X-User-Id")
 	roomId := r.PathValue("roomId")
 	newUsersIds := r.URL.Query()["userId"]
-	errsInsert, errPermission := rh.roomService.AddUsersToRoom(ctx, roomId, newUsersIds, addingUserId)
-	if errPermission != nil {
-		http.Error(w, "This action requires admin privileges", http.StatusForbidden)
+	err := rh.roomService.AddUsersToRoom(ctx, roomId, newUsersIds, addingUserId)
+	if err != nil {
+		if err == service.ErrInsufficientPermissions {
+			http.Error(w, "This action requires admin privileges", http.StatusForbidden)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response := struct {
-		Errors []error `json:"errors"`
-	}{
-		Errors: errsInsert,
-	}
-	writeJsonResponse(w, response)
+
 	w.WriteHeader(http.StatusOK)
 }
 
