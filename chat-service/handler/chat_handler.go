@@ -15,6 +15,19 @@ func NewChatHandler(cs *service.ChatService) *ChatHandler {
 	return &ChatHandler{chatService: cs}
 }
 
+func (ch *ChatHandler) GetMessages(w http.ResponseWriter, r *http.Request) {
+	roomId := r.PathValue("roomId")
+	userId := r.Header.Get("X-User-Id")
+
+	messages, err := ch.chatService.ListMessages(r.Context(), roomId, userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJsonResponse(w, messages)
+}
+
 // GetMessagesSummary handles requests to summarize chat messages.
 // It expects a JSON array of strings in the request body and passes them
 // along with roomId and userId to the service layer for processing.
@@ -38,5 +51,4 @@ func (ch *ChatHandler) GetMessagesSummary(w http.ResponseWriter, r *http.Request
 	}
 
 	writeJsonResponse(w, messagesSummary)
-	w.WriteHeader(http.StatusOK)
 }

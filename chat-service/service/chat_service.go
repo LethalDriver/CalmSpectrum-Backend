@@ -60,6 +60,21 @@ func (s *ChatService) ValidateConnection(ctx context.Context, roomId, userId str
 	return nil
 }
 
+func (c *ChatService) ListMessages(ctx context.Context, roomId string, userId string) ([]structs.Message, error) {
+	room, err := c.roomRepo.GetRoom(ctx, roomId)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrRoomNotFound
+		}
+		return nil, err
+	}
+	if !checkIfUserBelongsToRoom(room, userId) {
+		return nil, ErrInsufficientPermissions
+	}
+
+	return room.Messages, nil
+}
+
 func (s *ChatService) GetMessagesSummary(ctx context.Context, roomId, userId string, messageIds []string) (*structs.MessagesSummary, error) {
 	room, err := s.roomRepo.GetRoom(ctx, roomId)
 	if err != nil {
