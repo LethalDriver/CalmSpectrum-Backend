@@ -204,12 +204,34 @@ func (repo *MongoChatRoomRepository) GetUnseenMessages(ctx context.Context, room
 	return messages, nil
 }
 
+// GetMessageById retrieves a single message by its ID from the messages array within a room document.
 func (repo *MongoChatRoomRepository) GetMessageById(ctx context.Context, id string) (*structs.Message, error) {
-	var msg structs.Message
-	filter := bson.M{"id": id}
-	err := repo.collection.FindOne(ctx, filter).Decode(&msg)
-	if err != nil {
-		return nil, err
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$unwind", Value: "$messages"}},
+		bson.D{{Key: "$match", Value: bson.D{{Key: "messages.id", Value: id}}}},
+		bson.D{{Key: "$project", Value: bson.D{{Key: "message", Value: "$messages"}}}},
 	}
-	return &msg, nil
+
+	cursor, err := repo.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("aggregation error: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var result struct {
+		Message structs.Message `bson:"message"`
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("cursor decode error: %w", err)
+		}
+		return &result.Message, nil
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %w", err)
+	}
+
+	return nil, mongo.ErrNoDocuments
 }
