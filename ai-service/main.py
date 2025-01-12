@@ -21,7 +21,7 @@ PORT = int(os.getenv("PORT"))
 
 
 class SummarizeChatResponse(BaseModel):
-    response: str = Field(..., example="The user asked for information about services.")
+    summary: str = Field(..., example="The user asked for information about services.")
 
 
 def process_chat_input(chat_conversation: List[Dict]) -> str:
@@ -77,7 +77,9 @@ def sumarize_chat(
         headers={"Authorization": f"Bearer {OLLAMA_API_KEY}"},
     )
     if response.status_code == 200:
-        return response.json()
+        response = response.json()
+        print(response)
+        return response
     else:
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
