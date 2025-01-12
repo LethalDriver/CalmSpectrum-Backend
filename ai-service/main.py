@@ -40,7 +40,7 @@ def process_chat_input(chat_conversation: List[Dict]) -> str:
     return processed_chat
 
 
-@app.post("/sumarize_chat", response_model=SummarizeChatResponse)
+@app.post("/summarize_chat", response_model=SummarizeChatResponse)
 def sumarize_chat(
     input: Dict[str, List[Dict[str, str]]] = Body(
         ...,
