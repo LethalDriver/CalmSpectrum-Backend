@@ -43,6 +43,8 @@ func (c *AiAssistantClient) GetMessagesSummary(ctx context.Context, messages []s
 		return nil, fmt.Errorf("failed to marshal messages: %w", err)
 	}
 
+	fmt.Printf("Request: %s\n", string(jsonData))
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/summarize_chat", c.BaseURL), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -60,6 +62,8 @@ func (c *AiAssistantClient) GetMessagesSummary(ctx context.Context, messages []s
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
+
+	fmt.Printf("Response: %s\n", string(bodyBytes))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("AI assistant returned status %d: %s", resp.StatusCode, string(bodyBytes))
