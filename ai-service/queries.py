@@ -1,7 +1,7 @@
 from langchain.prompts import PromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from templates import summary_example_template, summary_input_template
-from multishot_examples import summary_examples, emotions_examples
+from multishot_examples import summary_examples
 
 
 def summarize_chat_multishot_query(chat_conversation: str) -> str:

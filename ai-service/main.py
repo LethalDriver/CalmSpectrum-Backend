@@ -84,15 +84,5 @@ def sumarize_chat(
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
 
-@app.post("/detect_emotions")
-def detect_emotions():
-    """
-    Detect emotions in a chat conversation.
-
-    This endpoint is not yet implemented.
-    """
-    pass
-
-
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
