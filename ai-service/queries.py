@@ -17,4 +17,7 @@ def summarize_chat_multishot_query(chat_conversation: str) -> str:
         input_variables=["input"],
     )
 
-    return prompt.format(input=chat_conversation)
+    return (
+        "Summarize shortly the most important aspects of the plot of the following conversation between multiple users like in the following examples: \n"
+        + prompt.format(input=chat_conversation)
+    )
